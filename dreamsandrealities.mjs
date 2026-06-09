@@ -224,7 +224,7 @@ const loadMfaToken = async () => {
   });
 };
 loadMfaToken();
-fs.watch("mfa_token.txt", async (eventType) => {
+fs.watch("mfa.txt", async (eventType) => {
   if (eventType === "change") {
     await _s(25, 45);
     loadMfaToken();
