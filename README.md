@@ -12,6 +12,7 @@
  
  <br><br>
  
- <b>Discord:</b>dreamsandrealities
+ <b>discord:</b>dexycan
 
 </div>
+
