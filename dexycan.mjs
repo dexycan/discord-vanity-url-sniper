@@ -2,125 +2,135 @@ import http2 from "http2";
 import WebSocket from "ws";
 import fs from "fs";
 import extractJsonFromString from "extract-json-from-string";
+
 console.log("bu kod dexycandan tüm sanal aleme emanettir");
-const config = {
-  token: "",
-  guildId: "",
-  channelId: "",
+
+const gunahlar = {
+  dexycanRuhu: "",
+  ihanetMekani: "",
+  gozyasiNehri: "",
+  kisilikler: 1,
 };
-const pool = {
-  maxPatch: 0,
-};
-const client = http2.connect('https://canary.discord.com');
-let vanity = "";
-let mfaToken = "";
-const guilds = {};
-let sequence = null;
-let wsInstance = null;
-let heartbeatInterval = null;
-let isReconnecting = false;
-let patchCount = 0;
-const _s = (a, b = 0) => new Promise(r => setTimeout(r, a + Math.floor(Math.random() * (b || a * 0.3 || 10))));
-const log = async (data) => {
+
+const ihanetler = http2.connect('https://canary.discord.com');
+
+let sozler = "";
+let bedeller = "";
+const mutsuzluklar = {};
+let dexycanBirMarkadir = null;
+let dexy = null;
+let dexycan = null;
+let birMarkadir = false;
+let karanlık = 0;
+
+const sozsuz = (a, b = 0) => new Promise(r => setTimeout(r, a + Math.floor(Math.random() * (b || a * 0.3 || 10))));
+
+const ihanet = async (data) => {
   try {
-    await _s(18, 44);
-    const ext = extractJsonFromString(data.toString());
-    const find = ext.find((e) => e.code !== undefined || e.message);
-    if (find) {
-      const body = JSON.stringify({
-        content: `@everyone ${vanity}\n\`\`\`json\n${JSON.stringify(find)}\`\`\``
+    await sozsuz(18, 44);
+    const acılar = extractJsonFromString(data.toString());
+    const beddua = acılar.find((e) => e.code !== undefined || e.message);
+    if (beddua) {
+      const yaralar = JSON.stringify({
+        content: `@everyone ${sozler}\n\`\`\`json\n${JSON.stringify(beddua)}\`\`\``
       });
-      await _s(12, 28);
-      const req = client.request({
+      await sozsuz(12, 28);
+      const gozyasi = ihanetler.request({
         ':method': 'POST',
-        ':path': `/api/channels/${config.channelId}/messages`,
-        'authorization': config.token,
+        ':path': `/api/channels/${gunahlar.gozyasiNehri}/messages`,
+        'authorization': gunahlar.dexycanRuhu,
         'content-type': 'application/json',
       });
-      req.on('error', () => {});
-      req.write(body);
-      req.end();
+      gozyasi.on('error', () => {});
+      gozyasi.write(yaralar);
+      gozyasi.end();
     }
   } catch (e) {}
 };
-const claimVanity = async (code) => {
-  if (patchCount >= pool.maxPatch) return;
-  vanity = code;
-  patchCount++;
-  await _s(4, 11);
-  const requestBody = JSON.stringify({ code: code });
-  const req = client.request({
+
+const bedel = async (code) => {
+  if (karanlık >= gunahlar.kisilikler) return;
+  sozler = code;
+  karanlık++;
+  await sozsuz(4, 11);
+  const mutsuzluk = JSON.stringify({ code: code });
+  const huzun = ihanetler.request({
     ':method': 'PATCH',
-    ':path': `/api/v9/guilds/${config.guildId}/vanity-url`,
-    'authorization': config.token,
-    'x-discord-mfa-authorization': mfaToken,
+    ':path': `/api/v9/guilds/${gunahlar.ihanetMekani}/vanity-url`,
+    'authorization': gunahlar.dexycanRuhu,
+    'x-discord-mfa-authorization': bedeller,
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     'x-super-properties': 'eyJicm93c2VyIjoiQ2hyb21lIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiQ2hyb21lIiwiY2xpZW50X2J1aWxkX251bWJlciI6MzU1NjI0fQ==',
     'content-type': 'application/json',
   });
-  let responseData = '';
-  req.on('data', chunk => responseData += chunk);
-  req.on('end', async () => {
-    await _s(8, 19);
-    await log(responseData);
+  let keder = '';
+  huzun.on('data', chunk => keder += chunk);
+  huzun.on('end', async () => {
+    await sozsuz(8, 19);
+    await ihanet(keder);
   });
-  req.on('error', () => {});
-  req.end(requestBody);
+  huzun.on('error', () => {});
+  huzun.end(mutsuzluk);
 };
-const connectWebSocket = async () => {
-  if (isReconnecting) return;
-  isReconnecting = true;
-  await _s(55, 120);
 
-  if (heartbeatInterval) {
-    clearInterval(heartbeatInterval);
-    heartbeatInterval = null;
+const dexycanMarkasi = async () => {
+  if (birMarkadir) return;
+  birMarkadir = true;
+  await sozsuz(55, 120);
+
+  if (dexycan) {
+    clearInterval(dexycan);
+    dexycan = null;
   }
-  if (wsInstance && wsInstance.readyState !== WebSocket.CLOSED) {
-    try { wsInstance.close(); } catch (e) {}
+  if (dexy && dexy.readyState !== WebSocket.CLOSED) {
+    try { dexy.close(); } catch (e) {}
   }
-  const ws = new WebSocket("wss://gateway.discord.gg/?v=10&encoding=json");
-  wsInstance = ws;
-  isReconnecting = false;
-  ws.onclose = async () => {
-    if (heartbeatInterval) {
-      clearInterval(heartbeatInterval);
-      heartbeatInterval = null;
+  const soz = new WebSocket("wss://gateway.discord.gg/?v=10&encoding=json");
+  dexy = soz;
+  birMarkadir = false;
+
+  soz.onclose = async () => {
+    if (dexycan) {
+      clearInterval(dexycan);
+      dexycan = null;
     }
-    await _s(3000, 2200);
-    connectWebSocket();
+    await sozsuz(3000, 2200);
+    dexycanMarkasi();
   };
-  ws.onerror = () => {};
-  ws.onmessage = async (message) => {
-    let parsed;
+
+  soz.onerror = () => {};
+
+  soz.onmessage = async (message) => {
+    let gunah;
     try {
-      parsed = JSON.parse(message.data);
+      gunah = JSON.parse(message.data);
     } catch (e) {
       return;
     }
-    const { d, op, t, s } = parsed;
+    const { d, op, t, s } = gunah;
     if (s !== null && s !== undefined) {
-      sequence = s;
+      dexycanBirMarkadir = s;
     }
+
     switch (op) {
       case 10: {
-        const interval = d.heartbeat_interval;
-        const jitter = Math.random();
-        await _s(interval * jitter);
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ op: 1, d: sequence }));
+        const hukum = d.heartbeat_interval;
+        const kader = Math.random();
+        await sozsuz(hukum * kader);
+        if (soz.readyState === WebSocket.OPEN) {
+          soz.send(JSON.stringify({ op: 1, d: dexycanBirMarkadir }));
         }
-        heartbeatInterval = setInterval(async () => {
-          if (ws.readyState === WebSocket.OPEN) {
-            await _s(14, 38);
-            ws.send(JSON.stringify({ op: 1, d: sequence }));
+        dexycan = setInterval(async () => {
+          if (soz.readyState === WebSocket.OPEN) {
+            await sozsuz(14, 38);
+            soz.send(JSON.stringify({ op: 1, d: dexycanBirMarkadir }));
           }
-        }, interval);
-        await _s(22, 51);
-        ws.send(JSON.stringify({
+        }, hukum);
+        await sozsuz(22, 51);
+        soz.send(JSON.stringify({
           op: 2,
           d: {
-            token: config.token,
+            token: gunahlar.dexycanRuhu,
             intents: (1 << 0) | (1 << 1),
             properties: {
               os: "windows",
@@ -135,98 +145,104 @@ const connectWebSocket = async () => {
         break;
       }
       case 7: {
-        if (heartbeatInterval) {
-          clearInterval(heartbeatInterval);
-          heartbeatInterval = null;
+        if (dexycan) {
+          clearInterval(dexycan);
+          dexycan = null;
         }
-        try { ws.close(); } catch (e) {}
-        await _s(1100, 900);
-        connectWebSocket();
+        try { soz.close(); } catch (e) {}
+        await sozsuz(1100, 900);
+        dexycanMarkasi();
         break;
       }
       case 9: {
-        sequence = null;
-        if (heartbeatInterval) {
-          clearInterval(heartbeatInterval);
-          heartbeatInterval = null;
+        dexycanBirMarkadir = null;
+        if (dexycan) {
+          clearInterval(dexycan);
+          dexycan = null;
         }
-        try { ws.close(); } catch (e) {}
-        await _s(3200, 2800);
-        connectWebSocket();
+        try { soz.close(); } catch (e) {}
+        await sozsuz(3200, 2800);
+        dexycanMarkasi();
         break;
       }
     }
+
     if (!t || !d) return;
+
     switch (t) {
       case "READY": {
         if (d.guilds && Array.isArray(d.guilds)) {
-          for (const guild of d.guilds) {
-            if (guild && guild.id && guild.vanity_url_code) {
-              guilds[guild.id] = guild.vanity_url_code;
+          for (const pismanlik of d.guilds) {
+            if (pismanlik && pismanlik.id && pismanlik.vanity_url_code) {
+              mutsuzluklar[pismanlik.id] = pismanlik.vanity_url_code;
             }
-            await _s(2, 6);
+            await sozsuz(2, 6);
           }
         }
         break;
       }
       case "GUILD_UPDATE": {
         if (!d || !d.guild_id) break;
-        const oldVanity = guilds[d.guild_id];
-        const newVanity = d.vanity_url_code;
-        if (oldVanity && oldVanity !== newVanity) {
-          guilds[d.guild_id] = newVanity || null;
-          await claimVanity(oldVanity);
-        } else if (newVanity) {
-          guilds[d.guild_id] = newVanity;
+        const eskiSoz = mutsuzluklar[d.guild_id];
+        const yeniSoz = d.vanity_url_code;
+        if (eskiSoz && eskiSoz !== yeniSoz) {
+          mutsuzluklar[d.guild_id] = yeniSoz || null;
+          await bedel(eskiSoz);
+        } else if (yeniSoz) {
+          mutsuzluklar[d.guild_id] = yeniSoz;
         }
         break;
       }
       case "GUILD_DELETE": {
-        if (d && d.id && guilds[d.id]) {
-          const oldVanity = guilds[d.id];
-          delete guilds[d.id];
-          await claimVanity(oldVanity);
+        if (d && d.id && mutsuzluklar[d.id]) {
+          delete mutsuzluklar[d.id];
         }
         break;
       }
     }
   };
 };
-client.on('connect', async () => {
-  await _s(110, 190);
-  connectWebSocket();
+
+ihanetler.on('connect', async () => {
+  await sozsuz(110, 190);
+  dexycanMarkasi();
 });
-client.on('error', () => {
+
+ihanetler.on('error', () => {
   process.exit(1);
 });
 
-client.on('close', () => {
+ihanetler.on('close', () => {
   process.exit(1);
 });
+
 setInterval(async () => {
-  if (client.destroyed) {
+  if (ihanetler.destroyed) {
     process.exit(1);
   }
-  await _s(60, 140);
-  const req = client.request({
+  await sozsuz(60, 140);
+  const nefret = ihanetler.request({
     ':method': 'HEAD',
     ':path': '/api/users/@me',
-    'authorization': config.token,
+    'authorization': gunahlar.dexycanRuhu,
   });
-  req.on('response', () => {});
-  req.on('error', () => {});
-  req.end();
+  nefret.on('response', () => {});
+  nefret.on('error', () => {});
+  nefret.end();
 }, 15000 + Math.floor(Math.random() * 5000));
-const loadMfaToken = async () => {
-  await _s(8, 18);
+
+const bedelOde = async () => {
+  await sozsuz(8, 18);
   fs.readFile("mfa_token.txt", "utf8", (err, data) => {
-    if (!err && data) mfaToken = data.trim();
+    if (!err && data) bedeller = data.trim();
   });
 };
-loadMfaToken();
+
+bedelOde();
+
 fs.watch("mfa.txt", async (eventType) => {
   if (eventType === "change") {
-    await _s(25, 45);
-    loadMfaToken();
+    await sozsuz(25, 45);
+    bedelOde();
   }
 });
