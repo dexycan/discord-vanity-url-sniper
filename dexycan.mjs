@@ -19,7 +19,6 @@ const createConnection = () => {
   ihanetler.on('close', () => process.exit(1));
 };
 createConnection();
-
 let sozler = "";
 let bedeller = "";
 const mutsuzluklar = {};
