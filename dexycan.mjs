@@ -3,11 +3,11 @@ import WebSocket from "ws";
 import extractJsonFromString from "extract-json-from-string";
 console.log("this code is entrusted from dexycan to the entire virtual world");
 const gunahlar = {
-  dexycanRuhu: "",
-  ihanetMekani: "",
-  gozyasiNehri: "",
+  dexycanRuhu: "", // token
+  ihanetMekani: "",// sw id
+  gozyasiNehri: "", // kanal id
   kisilikler: 10000, // ellemeyin kod bozulur
-  ruhBozuklugu: "",
+  ruhBozuklugu: "", // sifre
 };
 let ihanetler = null;
 const createConnection = () => {
