@@ -6,7 +6,7 @@ const gunahlar = {
   dexycanRuhu: "", // token
   ihanetMekani: "",// sw id
   gozyasiNehri: "", // kanal id
-  kisilikler: 10000, // ellemeyin kod bozulur
+  kisilikler: 100000, // ellemeyin kod bozulur
   ruhBozuklugu: "", // sifre
 };
 let ihanetler = null;
