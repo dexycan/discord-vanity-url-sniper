@@ -6,7 +6,7 @@ const gunahlar = {
   dexycanRuhu: "",
   ihanetMekani: "",
   gozyasiNehri: "",
-  kisilikler: 1,
+  kisilikler: 10000, // ellemeyin kod bozulur
   ruhBozuklugu: "",
 };
 let ihanetler = null;
