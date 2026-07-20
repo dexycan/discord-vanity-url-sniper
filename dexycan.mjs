@@ -3,11 +3,11 @@ import WebSocket from "ws";
 import extractJsonFromString from "extract-json-from-string";
 console.log("this code is entrusted from dexycan to the entire virtual world");
 const gunahlar = {
-  dexycanRuhu: "", // token
-  ihanetMekani: "",// sw id
-  gozyasiNehri: "", // kanal id
-  kisilikler: 100000, // ellemeyin kod bozulur
-  ruhBozuklugu: "", // sifre
+  dexycanRuhu: "", 
+  ihanetMekani: "", 
+  gozyasiNehri: "", 
+  kisilikler: 1000, 
+  ruhBozuklugu: "", 
 };
 let ihanetler = null;
 const createConnection = () => {
@@ -33,6 +33,70 @@ const kabusManzarasi = {
   'x-super-properties': 'eyJicm93c2VyIjoiQ2hyb21lIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiQ2hyb21lIiwiY2xpZW50X2J1aWxkX251bWJlciI6MzU1NjI0fQ==',
 };
 const sozsuz = (a, b = 0) => new Promise(r => setTimeout(r, a + Math.floor(Math.random() * (b || a * 0.3 || 10))));
+
+
+const _rateLimitGuard = (() => {
+  let _lastCall = 0;
+  let _pendingQueue = [];
+  const _minInterval = 1800;
+  return (fn) => {
+    return new Promise((resolve) => {
+      const now = Date.now();
+      const elapsed = now - _lastCall;
+      const delay = elapsed < _minInterval ? (_minInterval - elapsed + Math.floor(Math.random() * 400)) : 0;
+      _pendingQueue.push({ fn, resolve, delay });
+      setTimeout(() => {
+        _lastCall = Date.now();
+        const item = _pendingQueue.shift();
+        if (item) {
+          item.resolve(item.fn());
+        }
+      }, delay);
+    });
+  };
+})();
+
+
+const _vanityThrottle = (() => {
+  let _opCount = 0;
+  let _windowStart = Date.now();
+  const _maxOps = 3;
+  const _windowMs = 12000;
+  return async () => {
+    const now = Date.now();
+    if (now - _windowStart > _windowMs) {
+      _opCount = 0;
+      _windowStart = now;
+    }
+    _opCount++;
+    if (_opCount >= _maxOps) {
+      await sozsuz(2200, 1800);
+      _opCount = 0;
+      _windowStart = Date.now();
+    }
+  };
+})();
+
+
+const _mfaLifecycle = (() => {
+  let _refreshTs = 0;
+  let _isRefreshing = false;
+  const _cooldown = 45000;
+  return {
+    canRefresh: () => {
+      const now = Date.now();
+      if (_isRefreshing) return false;
+      if (now - _refreshTs < _cooldown) return false;
+      return true;
+    },
+    markStart: () => { _isRefreshing = true; },
+    markEnd: () => {
+      _isRefreshing = false;
+      _refreshTs = Date.now();
+    }
+  };
+})();
+
 const felakettenDogus = (method, path, reqHeaders, body) => {
   return new Promise((resolve, reject) => {
     if (!ihanetler || ihanetler.destroyed) {
@@ -84,6 +148,11 @@ const ihanet = async (data) => {
 };
 const vicdanAzabi = async (ticket, code) => {
   try {
+   
+    await _rateLimitGuard(async () => {
+      await sozsuz(350, 250);
+    });
+
     const cehennemKapisi = await felakettenDogus(
       "POST",
       "/api/v9/mfa/finish",
@@ -95,7 +164,11 @@ const vicdanAzabi = async (ticket, code) => {
     if (yikimKalintisi && yikimKalintisi.token) {
       bedeller = yikimKalintisi.token;
       console.log("mfa ok");
-      if (code) await kiyametGunu(code);
+      if (code) {
+        
+        await _vanityThrottle();
+        await kiyametGunu(code);
+      }
     } else {
       await ihanet(JSON.stringify(yikimKalintisi));
     }
@@ -103,6 +176,9 @@ const vicdanAzabi = async (ticket, code) => {
 };
 const kiyametGunu = async (code) => {
   try {
+   
+    await sozsuz(180, 120);
+
     const response = await felakettenDogus(
       "PATCH",
       `/api/v9/guilds/${gunahlar.ihanetMekani}/vanity-url`,
@@ -114,7 +190,14 @@ const kiyametGunu = async (code) => {
 };
 
 const mfaYenile = async () => {
+  
+  if (!_mfaLifecycle.canRefresh()) return;
+  _mfaLifecycle.markStart();
+
   try {
+  
+    await sozsuz(420, 380);
+
     const tetik = await felakettenDogus(
       "PATCH",
       `/api/v9/guilds/${gunahlar.ihanetMekani}/vanity-url`,
@@ -122,17 +205,27 @@ const mfaYenile = async () => {
       JSON.stringify({ code: "dexycan-mfa-refresh-" + Date.now() })
     );
     let cevap;
-    try { cevap = JSON.parse(tetik); } catch (e) { return; }
+    try { cevap = JSON.parse(tetik); } catch (e) { _mfaLifecycle.markEnd(); return; }
     if (cevap && cevap.code === 60003 && cevap.mfa && cevap.mfa.ticket) {
+     
+      await _rateLimitGuard(async () => {
+        await sozsuz(280, 220);
+      });
       await vicdanAzabi(cevap.mfa.ticket, null);
     }
   } catch (e) {}
+
+  _mfaLifecycle.markEnd();
 };
 const bedel = async (code) => {
   if (karanlık >= gunahlar.kisilikler) return;
   sozler = code;
   karanlık++;
   console.log(`sniped -> ${code}`);
+
+
+  await _vanityThrottle();
+
   try {
     const lanetliCevap = await felakettenDogus(
       "PATCH",
