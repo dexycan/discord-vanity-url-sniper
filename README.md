@@ -69,9 +69,6 @@
   </a>
 </p>
 
-<p align="center">
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=dexycan&layout=compact&theme=dark&hide_border=true&bg_color=09090b&title_color=ffffff&text_color=ffffff" width="41%" alt="Top Languages" />
-</p>
 
 <p align="center">
   <i>nothing to lose.</i>
